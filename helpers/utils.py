@@ -9,15 +9,15 @@ people_data = []
 def data_collector(data):
     # print(json.loads(data)['data'])
     data = data.text
-    if 'mime_type' in json.loads(data):
-        file_type = json.loads(data)['mime_type']
-        if file_type == 'application/xml':
-            root = ElementTree.XML(json.loads(data)['data'])
-            xmldict = XmlDictConfig(root)
-            print(xmldict['record'])
-
-    else:
-        people_data.append(json.loads(data)[0]['data'])
+    # if 'mime_type' in json.loads(data):
+    #     file_type = json.loads(data)['mime_type']
+    #     if file_type == 'application/xml':
+    #         root = ElementTree.XML(json.loads(data)['data'])
+    #         xmldict = XmlDictConfig(root)
+    #         print(xmldict['record'])
+    #
+    # else:
+    #     people_data.append(json.loads(data)[0]['data'])
 
 
 class XmlDictConfig(dict):
