@@ -2,6 +2,7 @@ import json
 import csv
 from xml.etree import cElementTree as ElementTree
 
+from logs.log import default_logger
 
 DATA = {}
 ROW = 0
@@ -13,23 +14,16 @@ def data_collector(data):
     global ROW
     collected_data = {}
     data_json = json.loads(data)
-    if 'mime_type' in data_json:
-        if data_json['mime_type'] == MIME_TYPE[0]:
-            collected_data = XmlDictConfig(ElementTree.XML(data_json['data']))
-            for key, value in collected_data['record'].items():
-                if value not in COLUMNS:
-                    COLUMNS.append(value)
-            collected_data[ROW] = collected_data.pop('record')
-            ROW = ROW + 1
 
-        elif data_json['mime_type'] == MIME_TYPE[1]:
-            collected_data = csv_to_dict(json.loads(data)['data'])
+    if 'mime_type' not in data_json:
+        DATA.update(data_json)
 
-        elif data_json['mime_type'] == MIME_TYPE[2]:
-            pass
-            # collected_data = yaml_to_dict()
-    DATA.update(collected_data)
-    print(DATA)
+
+def select_query(query):
+    list_of_values = []
+    for values in DATA['data']:
+        list_of_values.append(values[query.replace('select ', '')])
+    return DATA['data'].encode()
 
 
 def csv_to_dict(data):

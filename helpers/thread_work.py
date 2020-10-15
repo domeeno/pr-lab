@@ -4,11 +4,10 @@ import threading
 import requests
 
 from logs.log import default_logger
-from helpers.utils import data_collector
-
+from helpers.utils import data_collector, select_query
+from helpers import URL
 
 def travel(road, token):
-    from helpers.fetch import URL
     content = requests.get(URL + road, headers={'X-Access-Token': token})
     # default_logger.debug("Starting a thread for: " + road + " :: Active threads: " + str(threading.active_count()))
     data_collector(content.text)
@@ -23,6 +22,8 @@ def new_client(client_to_connect, connection):
         if msg.decode() == 'exit':
             break
         default_logger.debug('client message is: {}'.format(msg.decode()))
+        if "select " in msg.decode():
+            client_to_connect.sendall(select_query(msg.decode())).encode()
         client_to_connect.sendall('sending request: {}'.format(msg.decode()).encode())
     default_logger.debug('{}'.format(connection) + ' disconnected')
     client_to_connect.close()
