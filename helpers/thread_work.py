@@ -11,7 +11,7 @@ def travel(road, token):
     from helpers.fetch import URL
     content = requests.get(URL + road, headers={'X-Access-Token': token})
     # default_logger.debug("Starting a thread for: " + road + " :: Active threads: " + str(threading.active_count()))
-    data_collector(content)
+    data_collector(content.text)
     if "link" in json.loads(content.text):
         threadinator(json.loads(content.text)['link'], token)
 

@@ -3,21 +3,87 @@ import csv
 from xml.etree import cElementTree as ElementTree
 
 
-people_data = []
+DATA = {}
+ROW = 0
+COLUMNS = []
+MIME_TYPE = ['application/xml', 'text/csv', 'application/x-yaml']
 
 
 def data_collector(data):
-    # print(json.loads(data)['data'])
-    data = data.text
-    # if 'mime_type' in json.loads(data):
-    #     file_type = json.loads(data)['mime_type']
-    #     if file_type == 'application/xml':
-    #         root = ElementTree.XML(json.loads(data)['data'])
-    #         xmldict = XmlDictConfig(root)
-    #         print(xmldict['record'])
-    #
-    # else:
-    #     people_data.append(json.loads(data)[0]['data'])
+    global ROW
+    collected_data = {}
+    data_json = json.loads(data)
+    if 'mime_type' in data_json:
+        if data_json['mime_type'] == MIME_TYPE[0]:
+            collected_data = XmlDictConfig(ElementTree.XML(data_json['data']))
+            for key, value in collected_data['record'].items():
+                if value not in COLUMNS:
+                    COLUMNS.append(value)
+            collected_data[ROW] = collected_data.pop('record')
+            ROW = ROW + 1
+
+        elif data_json['mime_type'] == MIME_TYPE[1]:
+            collected_data = csv_to_dict(json.loads(data)['data'])
+
+        elif data_json['mime_type'] == MIME_TYPE[2]:
+            pass
+            # collected_data = yaml_to_dict()
+    DATA.update(collected_data)
+    print(DATA)
+
+
+def csv_to_dict(data):
+    dictionary_friendly_string = ""
+    csv_dict = {}
+    values = []
+
+    rows = data.split('\n')
+
+    columns = list(rows[0].split(","))
+
+    for index, row in enumerate(rows):
+        if index == 0:
+            continue
+
+        values.append(rows[index].split(','))
+
+    index = ROW
+    index = index + 1
+    dictionary_friendly_string = dictionary_friendly_string + "{" + str(index) + ": "
+
+    del values[-1]
+    print(values)
+    for index, value in enumerate(values):
+
+        dictionary_friendly_string = dictionary_friendly_string + "{"
+        for string, column in zip(value, columns):
+            dictionary_friendly_string = dictionary_friendly_string + '"' + column + '": ' + '"' + string + '"' + ', '
+        index = index + 1
+        if index != len(value) - 1:
+            dictionary_friendly_string = dictionary_friendly_string + "}, " + str(index) + ": "
+        else:
+            dictionary_friendly_string = dictionary_friendly_string + "}"
+            break
+
+    dictionary_friendly_string = dictionary_friendly_string + "}"
+    print(dictionary_friendly_string)
+    return json.loads(dictionary_friendly_string)
+
+
+class XmlListConfig(list):
+    def __init__(self, aList):
+        for element in aList:
+            if element:
+                # treat like dict
+                if len(element) == 1 or element[0].tag != element[1].tag:
+                    self.append(XmlDictConfig(element))
+                # treat like list
+                elif element[0].tag == element[1].tag:
+                    self.append(XmlListConfig(element))
+            elif element.text:
+                text = element.text.strip()
+                if text:
+                    self.append(text)
 
 
 class XmlDictConfig(dict):
