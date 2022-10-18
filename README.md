@@ -1,4 +1,4 @@
-# pr-lab
+# Network Programming project
 
 Server-Client websocket app with use of threads written in Python.
 
